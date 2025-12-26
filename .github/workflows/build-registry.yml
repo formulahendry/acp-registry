@@ -71,10 +71,3 @@ jobs:
 
           # Delete old 'latest' tag and release
           gh release delete latest --yes --cleanup-tag || true
-
-          # Create new 'latest' release
-          gh release create latest \
-            --title "Latest Registry" \
-            --notes "Points to $VERSION" \
-            --latest \
-            dist/*
