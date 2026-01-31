@@ -575,7 +575,7 @@ def build_registry():
     dist_dir.mkdir(exist_ok=True)
 
     # Write registry.json
-    REGISTRY_EXCLUDE_IDS = {"github-copilot-ls"}
+    REGISTRY_EXCLUDE_IDS = {"github-copilot"}
     registry = {
         "version": REGISTRY_VERSION,
         "agents": [a for a in agents if a["id"] not in REGISTRY_EXCLUDE_IDS],
