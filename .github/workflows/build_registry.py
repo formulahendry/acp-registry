@@ -570,24 +570,24 @@ def build_registry():
     if not agents and not extensions:
         print("\nWarning: No agents or extensions found")
 
-    registry = {
-        "version": REGISTRY_VERSION,
-        "agents": agents,
-        "extensions": extensions,
-    }
-
     # Create dist directory
     dist_dir = registry_dir / "dist"
     dist_dir.mkdir(exist_ok=True)
 
     # Write registry.json
+    REGISTRY_EXCLUDE_IDS = {"github-copilot-ls"}
+    registry = {
+        "version": REGISTRY_VERSION,
+        "agents": [a for a in agents if a["id"] not in REGISTRY_EXCLUDE_IDS],
+        "extensions": extensions,
+    }
     output_path = dist_dir / "registry.json"
     with open(output_path, "w") as f:
         json.dump(registry, f, indent=2)
         f.write("\n")
 
-    # Write registry-for-jetbrains.json (without codex and claude-code)
-    JETBRAINS_EXCLUDE_IDS = {"codex-acp", "claude-code-acp"}
+    # Write registry-for-jetbrains.json
+    JETBRAINS_EXCLUDE_IDS = {"codex-acp", "claude-code-acp", "github-copilot-cli"}
     jetbrains_registry = {
         "version": REGISTRY_VERSION,
         "agents": [a for a in agents if a["id"] not in JETBRAINS_EXCLUDE_IDS],
@@ -613,10 +613,11 @@ def build_registry():
             schema_dst = dist_dir / schema_file
             schema_dst.write_bytes(schema_src.read_bytes())
 
+    registry_agent_count = len(registry["agents"])
     jetbrains_agent_count = len(jetbrains_registry["agents"])
     print(f"\nBuilt dist/ with {len(agents)} agents and {len(extensions)} extensions")
-    print(f"  registry.json: {len(agents)} agents")
-    print(f"  registry-for-jetbrains.json: {jetbrains_agent_count} agents (excluded: {', '.join(JETBRAINS_EXCLUDE_IDS)})")
+    print(f"  registry.json: {registry_agent_count} agents (excluded: {', '.join(sorted(REGISTRY_EXCLUDE_IDS))})")
+    print(f"  registry-for-jetbrains.json: {jetbrains_agent_count} agents (excluded: {', '.join(sorted(JETBRAINS_EXCLUDE_IDS))})")
 
 
 if __name__ == "__main__":
