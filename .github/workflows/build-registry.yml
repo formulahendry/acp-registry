@@ -126,21 +126,9 @@ jobs:
         run: |
           VERSION="v$(date +%Y.%m.%d)-$(git rev-parse --short HEAD)"
 
-          # Create versioned release
           gh release create "$VERSION" \
             --title "Registry $VERSION" \
             --notes "Auto-generated registry build" \
-            dist/registry.json \
-            dist/agent.schema.json \
-            dist/registry.schema.json \
-            dist/*.svg
-
-          # Update latest release (delete old tag first to avoid conflicts)
-          git push origin :refs/tags/latest || true
-          gh release delete latest --yes || true
-          gh release create latest \
-            --title "Registry (latest)" \
-            --notes "Latest registry build - $VERSION" \
             dist/registry.json \
             dist/agent.schema.json \
             dist/registry.schema.json \
