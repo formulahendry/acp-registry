@@ -573,23 +573,28 @@ def build_registry():
     if not agents:
         print("\nWarning: No agents found")
 
-    registry = {"version": REGISTRY_VERSION, "agents": agents, "extensions": []}
-
     # Create dist directory
     dist_dir = registry_dir / "dist"
     dist_dir.mkdir(exist_ok=True)
 
+    # Agents excluded from registry.json (default registry)
+    DEFAULT_EXCLUDE_IDS = {"github-copilot"}
+    # Agents excluded from registry-for-jetbrains.json
+    JETBRAINS_EXCLUDE_IDS = {"codex-acp", "claude-code-acp", "junie-acp", "github-copilot-cli"}
+
     # Write registry.json
+    default_agents = [a for a in agents if a["id"] not in DEFAULT_EXCLUDE_IDS]
+    registry = {"version": REGISTRY_VERSION, "agents": default_agents, "extensions": []}
     output_path = dist_dir / "registry.json"
     with open(output_path, "w") as f:
         json.dump(registry, f, indent=2)
         f.write("\n")
 
-    # Write registry-for-jetbrains.json (without codex and claude-code)
-    JETBRAINS_EXCLUDE_IDS = {"codex-acp", "claude-code-acp", "junie-acp"}
+    # Write registry-for-jetbrains.json
+    jetbrains_agents = [a for a in agents if a["id"] not in JETBRAINS_EXCLUDE_IDS]
     jetbrains_registry = {
         "version": REGISTRY_VERSION,
-        "agents": [a for a in agents if a["id"] not in JETBRAINS_EXCLUDE_IDS],
+        "agents": jetbrains_agents,
     }
     jetbrains_output_path = dist_dir / "registry-for-jetbrains.json"
     with open(jetbrains_output_path, "w") as f:
@@ -611,11 +616,14 @@ def build_registry():
             schema_dst = dist_dir / schema_file
             schema_dst.write_bytes(schema_src.read_bytes())
 
-    jetbrains_agent_count = len(jetbrains_registry["agents"])
-    print(f"\nBuilt dist/ with {len(agents)} agents")
-    print(f"  registry.json: {len(agents)} agents")
+    default_agent_count = len(default_agents)
+    jetbrains_agent_count = len(jetbrains_agents)
+    print(f"\nBuilt dist/ with {len(agents)} total agents")
     print(
-        f"  registry-for-jetbrains.json: {jetbrains_agent_count} agents (excluded: {', '.join(JETBRAINS_EXCLUDE_IDS)})"
+        f"  registry.json: {default_agent_count} agents (excluded: {', '.join(sorted(DEFAULT_EXCLUDE_IDS))})"
+    )
+    print(
+        f"  registry-for-jetbrains.json: {jetbrains_agent_count} agents (excluded: {', '.join(sorted(JETBRAINS_EXCLUDE_IDS))})"
     )
 
 
